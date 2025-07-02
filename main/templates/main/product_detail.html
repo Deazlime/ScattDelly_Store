@@ -1,0 +1,445 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% block title %}{{ product.name }} - ScattDelly Store{% endblock %}
+
+{% block extra_styles %}
+<style>
+    :root {
+        --burgundy: #800020;
+        --burgundy-dark: #660019;
+        --burgundy-light: #a0002a;
+    }
+    .product-gallery { position: sticky; top: 100px; }
+    .main-image { width: 100%; height: 500px; object-fit: cover; border-radius: 12px; cursor: zoom-in; transition: transform 0.3s ease; }
+    .thumbnail { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.3s ease; }
+    .thumbnail:hover, .thumbnail.active { border-color: var(--burgundy); transform: scale(1.05); }
+    .price-original { text-decoration: line-through; color: #6c757d; font-size: 1.1em; }
+    .price-current { color: var(--burgundy); font-weight: bold; font-size: 2em; }
+    .rating { color: #ffc107; }
+    .spec-table { background: #f8f9fa; border-radius: 8px; padding: 20px; }
+    .spec-row { border-bottom: 1px solid #dee2e6; padding: 10px 0; }
+    .spec-row:last-child { border-bottom: none; }
+    .review-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 20px; }
+    .review-photos { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+    .review-photo { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; }
+    .modal-img { max-width: 100%; max-height: 80vh; object-fit: contain; }
+    .sidebar-panel { position: fixed; top: 0; right: -100%; width: 500px; height: 100vh; background: white; box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1); transition: right 0.3s ease; z-index: 1050; overflow-y: auto; }
+    .sidebar-panel.show { right: 0; }
+    .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1040; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+    .sidebar-overlay.show { opacity: 1; visibility: visible; }
+    .color-option { width: 40px; height: 40px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: all 0.3s ease; }
+    .color-option.active { border-color: var(--burgundy); transform: scale(1.1); }
+    .memory-option { padding: 8px 16px; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+    .memory-option.active { border-color: var(--burgundy); background-color: var(--burgundy); color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'index' %}" class="text-decoration-none">Главная</a></li>
+                <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Электроника</a></li>
+                <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Смартфоны и телефоны</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'catalog' %}" class="text-decoration-none">Смартфоны</a></li>
+                <li class="breadcrumb-item active" aria-current="page">iPhone</li>
+            </ol>
+        </nav>
+        
+        <div class="row">
+            <!-- Product Gallery -->
+            <div class="col-lg-6">
+                <div class="product-gallery">
+                    <div class="mb-3">
+                        <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="main-image" id="mainImage" style="width:100%;height:500px;object-fit:cover;border-radius:12px;" onclick="openImageModal(this.src)">
+                    </div>
+                    
+                    <div class="d-flex gap-2 flex-wrap">
+                        <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="thumbnail active" onclick="changeMainImage(this)">
+                        {% for img in gallery %}
+                        <img src="{{ img.image.url }}" alt="{{ product.name }}" class="thumbnail" onclick="changeMainImage(this)">
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="col-lg-6">
+                <div class="mb-2">
+                    <span class="badge bg-success me-2">Оригинал</span>
+                    <span class="badge bg-warning">Хит продаж</span>
+                </div>
+                
+                <h1 class="fw-bold mb-3">{{ product.name }}</h1>
+                
+                <div class="mb-3">
+                    <span class="rating me-2">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </span>
+                    <span class="fw-semibold">{{ reviews|length|default:0 }}</span>
+                    <span class="text-muted ms-1">• отзывов</span>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="price-current">{{ product.price }} ₽</div>
+                </div>
+                
+                <!-- Color Selection -->
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-3">Цвет: Титановый натуральный</h6>
+                    <div class="d-flex gap-2">
+                        <div class="color-option active" style="background: linear-gradient(45deg, #c0c0c0, #e8e8e8);" onclick="selectColor(this, 'Титановый натуральный')"></div>
+                        <div class="color-option" style="background: linear-gradient(45deg, #2c2c2c, #4a4a4a);" onclick="selectColor(this, 'Титановый черный')"></div>
+                        <div class="color-option" style="background: linear-gradient(45deg, #f5f5dc, #fff8dc);" onclick="selectColor(this, 'Титановый белый')"></div>
+                        <div class="color-option" style="background: linear-gradient(45deg, #8b7355, #a0845c);" onclick="selectColor(this, 'Титановый пустынный')"></div>
+                    </div>
+                </div>
+                
+                <!-- Memory Selection -->
+                <div class="mb-4">
+                    <h6 class="fw-semibold mb-3">Память</h6>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <div class="memory-option" onclick="selectMemory(this, '128GB', 124990)">128GB<br><small>124 990 ₽</small></div>
+                        <div class="memory-option active" onclick="selectMemory(this, '256GB', 134990)">256GB<br><small>134 990 ₽</small></div>
+                        <div class="memory-option" onclick="selectMemory(this, '512GB', 154990)">512GB<br><small>154 990 ₽</small></div>
+                        <div class="memory-option" onclick="selectMemory(this, '1TB', 174990)">1TB<br><small>174 990 ₽</small></div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mb-4">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-burgundy btn-lg" onclick="buyNow()">
+                            <i class="bi bi-lightning-fill me-2"></i>Купить сейчас
+                        </button>
+                        <button class="btn btn-outline-secondary btn-lg" onclick="addToCart()">
+                            <i class="bi bi-cart-plus me-2"></i>Добавить в корзину
+                        </button>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-3">
+                        <button class="btn btn-outline-secondary" onclick="toggleFavorite()">
+                            <i class="bi bi-heart" id="favoriteIcon"></i> В избранное
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="shareProduct()">
+                            <i class="bi bi-share"></i> Поделиться
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Delivery Info -->
+                <div class="border rounded p-3 mb-4">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-truck text-success me-2"></i>
+                        <span class="fw-semibold">Доставка завтра</span>
+                    </div>
+                    <small class="text-muted">При заказе до 18:00. Бесплатно от 3000 ₽</small>
+                </div>
+                
+                <!-- Characteristics Button -->
+                <button class="btn btn-outline-burgundy w-100 mb-3" onclick="openSpecsPanel()">
+                    <i class="bi bi-list-ul me-2"></i>Характеристики и описание
+                </button>
+            </div>
+        </div>
+        <!-- Отзывы -->
+        <div class="mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold">Отзывы <span class="text-muted fs-6">{{ reviews|length }}</span></h3>
+            </div>
+            {% for review in reviews %}
+            <div class="review-card mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="fw-semibold">{{ review.name }}</div>
+                        <div class="text-muted small">{{ review.created_at|date:"d E Y" }}</div>
+                    </div>
+                    <div class="rating">
+                        {% for i in "12345"|make_list %}
+                            {% if review.rating|add:'0' >= i|add:'0' %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    {% if review.pros %}<div class="fw-semibold text-success">Достоинства:</div><p>{{ review.pros }}</p>{% endif %}
+                    {% if review.cons %}<div class="fw-semibold text-danger">Недостатки:</div><p>{{ review.cons }}</p>{% endif %}
+                    <div>{{ review.comment }}</div>
+                </div>
+                {% if review.photos %}
+                <div class="review-photos">
+                    <img src="{{ review.photos.url }}" alt="Фото отзыва" class="review-photo" onclick="openImageModal(this.src)">
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <!-- Форма отзыва -->
+            <div class="mt-5">
+                <h4 class="fw-bold mb-4">Оставить отзыв</h4>
+                <form id="reviewForm" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Ваше имя</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            {{ form.email }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Оценка</label>
+                        <div class="rating-input">
+                            <i class="bi bi-star rating-star" data-rating="1"></i>
+                            <i class="bi bi-star rating-star" data-rating="2"></i>
+                            <i class="bi bi-star rating-star" data-rating="3"></i>
+                            <i class="bi bi-star rating-star" data-rating="4"></i>
+                            <i class="bi bi-star rating-star" data-rating="5"></i>
+                            {{ form.rating }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Достоинства</label>
+                        {{ form.pros }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Недостатки</label>
+                        {{ form.cons }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Комментарий</label>
+                        {{ form.comment }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Фотографии (необязательно)</label>
+                        {{ form.photos }}
+                    </div>
+                    <button type="submit" class="btn btn-burgundy">
+                        <i class="bi bi-send me-2"></i>Отправить отзыв
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Specifications Sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSpecsPanel()"></div>
+<div class="sidebar-panel" id="specsPanel">
+    <div class="p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold">Характеристики и описание</h4>
+            <button class="btn-close" onclick="closeSpecsPanel()"></button>
+        </div>
+        
+        <div class="mb-4">
+            <h5 class="fw-semibold mb-3">Описание</h5>
+            <p>{{ product.description }}</p>
+        </div>
+        
+        <div class="spec-table">
+            <h5 class="fw-semibold mb-3">Основные характеристики</h5>
+            {% for spec in product.specifications %}
+            <div class="spec-row">
+                <div class="row">
+                    <div class="col-6 text-muted">{{ spec.name }}</div>
+                    <div class="col-6">{{ spec.value }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="{% static 'main/images/placeholder.svg' %}" alt="Увеличенное изображение" class="modal-img" id="modalImage">
+            </div>
+        </div>
+    </div>
+</div>
+
+<span class="cart-badge" id="cartBadge" style="display:none"></span>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let cartCount = 3;
+let currentRating = 0;
+
+function changeMainImage(thumbnail) {
+    const mainImage = document.getElementById('mainImage');
+    mainImage.style.opacity = '0.5';
+    
+    setTimeout(() => {
+        mainImage.src = thumbnail.src;
+        mainImage.style.opacity = '1';
+    }, 150);
+    
+    document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+    thumbnail.classList.add('active');
+}
+
+function openImageModal(src) {
+    document.getElementById('modalImage').src = src;
+    new bootstrap.Modal(document.getElementById('imageModal')).show();
+}
+
+function selectColor(element, colorName) {
+    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+    element.classList.add('active');
+    const title = document.querySelector('h1');
+    title.textContent = title.textContent.replace(/Титановый \w+/, colorName);
+}
+
+function selectMemory(element, memory, price) {
+    document.querySelectorAll('.memory-option').forEach(opt => opt.classList.remove('active'));
+    element.classList.add('active');
+    document.querySelector('.price-current').textContent = price.toLocaleString('ru-RU') + ' ₽';
+}
+
+function openSpecsPanel() {
+    document.getElementById('specsPanel').classList.add('show');
+    document.getElementById('sidebarOverlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSpecsPanel() {
+    document.getElementById('specsPanel').classList.remove('show');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+function addToCart() {
+    fetch('/add_to_cart/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: new URLSearchParams({ product_id: '{{ product.id }}' })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.cart_count !== undefined) {
+            const badge = document.getElementById('cartBadge');
+            if (data.cart_count > 0) {
+                badge.textContent = data.cart_count;
+                badge.style.display = '';
+            } else {
+                badge.textContent = '';
+                badge.style.display = 'none';
+            }
+        }
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check2 me-2"></i>Добавлено в корзину';
+        btn.disabled = true;
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
+    });
+}
+
+function buyNow() {
+    alert('Переход к оформлению заказа...');
+}
+
+function toggleFavorite() {
+    const icon = document.getElementById('favoriteIcon');
+    const btn = event.target;
+    if (icon.classList.contains('bi-heart')) {
+        icon.classList.remove('bi-heart');
+        icon.classList.add('bi-heart-fill');
+        btn.innerHTML = '<i class="bi bi-heart-fill" id="favoriteIcon"></i> В избранном';
+        btn.classList.add('text-danger');
+    } else {
+        icon.classList.remove('bi-heart-fill');
+        icon.classList.add('bi-heart');
+        btn.innerHTML = '<i class="bi bi-heart" id="favoriteIcon"></i> В избранное';
+        btn.classList.remove('text-danger');
+    }
+}
+
+function shareProduct() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ product.name }}',
+            text: 'Посмотрите этот товар в ScattDelly Store',
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Ссылка скопирована в буфер обмена');
+    }
+}
+
+// Интерактивные звёзды
+const stars = document.querySelectorAll('.rating-star');
+const ratingInput = document.getElementById('id_rating');
+stars.forEach(star => {
+    star.addEventListener('click', function() {
+        currentRating = parseInt(this.dataset.rating);
+        ratingInput.value = currentRating;
+        updateRatingDisplay();
+    });
+    star.addEventListener('mouseover', function() {
+        highlightStars(parseInt(this.dataset.rating));
+    });
+});
+document.querySelector('.rating-input').addEventListener('mouseleave', function() {
+    updateRatingDisplay();
+});
+function highlightStars(rating) {
+    stars.forEach((star, idx) => {
+        if (idx < rating) {
+            star.classList.remove('bi-star');
+            star.classList.add('bi-star-fill');
+        } else {
+            star.classList.remove('bi-star-fill');
+            star.classList.add('bi-star');
+        }
+    });
+}
+function updateRatingDisplay() {
+    highlightStars(currentRating);
+}
+updateRatingDisplay();
+
+// Отправка формы отзыва
+const reviewForm = document.getElementById('reviewForm');
+if (reviewForm) {
+    reviewForm.addEventListener('submit', function(e) {
+        if (parseInt(ratingInput.value) === 0) {
+            alert('Пожалуйста, поставьте оценку товару');
+            e.preventDefault();
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/cart_count/')
+        .then(res => res.json())
+        .then(data => {
+            const badge = document.getElementById('cartBadge');
+            if (data.cart_count > 0) {
+                badge.textContent = data.cart_count;
+                badge.style.display = '';
+            } else {
+                badge.textContent = '';
+                badge.style.display = 'none';
+            }
+        });
+});
+</script>
+{% endblock %} 

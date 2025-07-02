@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ScattDelly Store{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{% static 'main/images/favicon.ico' %}">
+    {% block extra_styles %}{% endblock %}
+    {% block extra_head %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'main/styles.css' %}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-burgundy fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="{% url 'index' %}" style="color: white !important;">
+                <i class="bi bi-phone me-2"></i>ScattDelly Store
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{% url 'catalog' %}">Каталог товаров</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle px-3" href="#" role="button" data-bs-toggle="dropdown">
+                            Дополнительно
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'calculator' %}">Калькулятор V2</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item me-3">
+                        <a class="nav-link position-relative" href="{% url 'cart' %}">
+                            <i class="bi bi-cart3 fs-5"></i>
+                            <span class="cart-badge" id="cartBadge" style="display:none"></span>
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item d-flex align-items-center">
+                            <a class="nav-link px-3 d-flex align-items-center gap-2" href="{% url 'profile' %}">
+                                {% if user.profile.avatar %}
+                                    <img src="{{ user.profile.avatar.url }}?t={{ avatar_mtime }}" alt="avatar" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                                {% else %}
+                                    <i class="bi bi-person-circle fs-5 me-1"></i>
+                                {% endif %}
+                                {{ user.username }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3" href="{% url 'logout' %}">Выйти</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link px-3" href="{% url 'register' %}">Регистрация</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3" href="{% url 'login' %}">Войти</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% block content %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

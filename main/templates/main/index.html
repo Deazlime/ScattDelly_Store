@@ -1,0 +1,210 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% block title %}ScattDelly Store - Интернет-магазин смартфонов и аксессуаров{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<nav class="navbar navbar-expand-lg navbar-burgundy fixed-top">
+    <div class="container">
+        <!-- Logo -->
+        <a class="navbar-brand fw-bold fs-4" href="{% url 'index' %}" style="color: white !important;">
+            <i class="bi bi-phone me-2"></i>ScattDelly Store
+        </a>
+        <!-- Mobile menu button -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Navigation -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link px-3" href="{% url 'catalog' %}">Каталог товаров</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-3" href="#" role="button" data-bs-toggle="dropdown">
+                        Дополнительно
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'calculator' %}">Калькулятор V2</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <!-- Cart -->
+                <li class="nav-item me-3">
+                    <a class="nav-link position-relative" href="{% url 'cart' %}">
+                        <i class="bi bi-cart3 fs-5"></i>
+                        <span class="cart-badge" id="cartBadge" style="display:none"></span>
+                    </a>
+                </li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item d-flex align-items-center">
+                        <a class="nav-link px-3" href="{% url 'profile' %}">
+                            <i class="bi bi-person-circle fs-5 me-1"></i>{{ user.username }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{% url 'logout' %}">Выйти</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{% url 'register' %}">Регистрация</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{% url 'login' %}">Войти</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section position-relative">
+    <img src="{% static 'main/images/phones.jpg' %}" alt="Смартфоны" class="hero-bg-img position-absolute w-100 h-100 top-0 start-0" style="object-fit: cover; z-index: 1;">
+    <div class="container-fluid position-relative z-2 h-100 d-flex align-items-center justify-content-center" style="min-height: 400px;">
+        <div class="w-100">
+            <h1 class="display-4 fw-bold mb-4 text-white text-shadow mt-5 text-justify">Лучший интернет-магазин смартфонов на Android и IOS</h1>
+            <p class="lead mb-4 text-white text-shadow text-justify">
+                ScattDelly Store — ваш надежный партнер в мире мобильных технологий. 
+                Широкий выбор смартфонов и аксессуаров с гарантией качества.
+            </p>
+            <div class="mb-4 d-flex justify-content-center">
+                <div class="alert alert-info d-inline-block">
+                    <i class="bi bi-gift me-2"></i>
+                    <strong>Скидка 2%</strong> для постоянных клиентов при заказе от 5000 руб.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col">
+                <h2 class="display-5 fw-bold">Почему выбирают нас?</h2>
+                <p class="lead text-muted">Преимущества покупки в ScattDelly Store</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="bi bi-shield-check text-success fs-1 mb-3"></i>
+                        <h5 class="card-title">Гарантия качества</h5>
+                        <p class="card-text">Все товары сертифицированы и имеют официальную гарантию производителя</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="bi bi-truck text-primary fs-1 mb-3"></i>
+                        <h5 class="card-title">Быстрая доставка</h5>
+                        <p class="card-text">Доставка по всей России. В Москве — курьером в день заказа</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="bi bi-headset text-warning fs-1 mb-3"></i>
+                        <h5 class="card-title">Поддержка 24/7</h5>
+                        <p class="card-text">Наши специалисты готовы помочь вам в любое время</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Products Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col">
+                <h2 class="display-5 fw-bold">Популярные товары</h2>
+                <p class="lead text-muted">Самые востребованные смартфоны и аксессуары</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            {% for product in popular_products %}
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 shadow-sm">
+                    {% if product.main_image %}
+                        <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="card-img-top" style="height: 250px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'main/images/placeholder.svg' %}" alt="Нет изображения" class="card-img-top" style="height: 250px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <span class="badge bg-secondary mb-2 align-self-start">{{ product.brand }}</span>
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text text-muted flex-grow-1">{{ product.short_description }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 mb-0 text-burgundy fw-bold">{{ product.price }} ₽</span>
+                            <div>
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary btn-sm me-2">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <form method="post" action="{% url 'add_to_cart' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                    <button type="submit" class="btn btn-burgundy btn-sm">
+                                        <i class="bi bi-cart-plus"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-5">
+            <a href="{% url 'catalog' %}" class="btn btn-burgundy btn-lg">
+                Посмотреть все товары
+                <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateCartBadge() {
+    fetch('/cart_count/')
+        .then(res => res.json())
+        .then(data => {
+            const badge = document.getElementById('cartBadge');
+            if (badge) {
+                if (data.cart_count > 0) {
+                    badge.textContent = data.cart_count;
+                    badge.style.display = '';
+                } else {
+                    badge.textContent = '';
+                    badge.style.display = 'none';
+                }
+            }
+        });
+}
+updateCartBadge();
+// Smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+        const target = document.querySelector(targetId);
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+</script>
+{% endblock %} 

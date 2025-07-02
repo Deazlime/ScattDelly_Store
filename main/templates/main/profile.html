@@ -1,0 +1,95 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% block title %}Профиль пользователя - ScattDelly Store{% endblock %}
+{% block content %}
+<div class="main-content">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <h2 class="fw-bold text-burgundy mb-1">{{ user.username }}</h2>
+                            <p class="text-muted">Редактирование профиля</p>
+                        </div>
+                        <form method="post" enctype="multipart/form-data" id="profileForm">
+                            {% csrf_token %}
+                            <div class="avatar-section text-center mb-4">
+                                <div class="avatar-container position-relative d-inline-block mb-2">
+                                    {% if profile.avatar %}
+                                        <img id="avatarImg" src="{{ profile.avatar.url }}?t={{ avatar_mtime }}" alt="Avatar" class="avatar" style="width:120px;height:120px;object-fit:cover;border-radius:50%;border:4px solid var(--burgundy);">
+                                    {% else %}
+                                        <div class="avatar d-flex align-items-center justify-content-center" style="width:120px;height:120px;border-radius:50%;border:4px solid var(--burgundy);background:#e9ecef;font-size:48px;color:#6c757d;">
+                                            <i class="bi bi-person"></i>
+                                        </div>
+                                    {% endif %}
+                                    <label class="avatar-upload position-absolute bottom-0 end-0" style="width:40px;height:40px;background:var(--burgundy);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;cursor:pointer;border:3px solid white;">
+                                        <input type="file" name="avatar" id="avatarInput" accept="image/*" style="opacity:0;width:100%;height:100%;position:absolute;left:0;top:0;cursor:pointer;">
+                                        <i class="bi bi-camera"></i>
+                                    </label>
+                                </div>
+                                <div class="text-muted mt-2" style="font-size:0.95em;">Нажмите на иконку камеры, чтобы изменить аватар</div>
+                                {% if profile.avatar %}
+                                <button type="submit" name="delete_avatar" class="btn btn-outline-danger btn-sm ms-2 mt-2">Удалить аватар</button>
+                                {% endif %}
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        {{ form.first_name }}
+                                        <label for="id_first_name">Имя <span class="text-danger">*</span></label>
+                                        {% if form.first_name.errors %}<div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        {{ form.last_name }}
+                                        <label for="id_last_name">Фамилия</label>
+                                        {% if form.last_name.errors %}<div class="invalid-feedback d-block">{{ form.last_name.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-floating mb-3">
+                                {{ form.email }}
+                                <label for="id_email">Email</label>
+                                {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="form-floating mb-3">
+                                {{ form.phone }}
+                                <label for="id_phone">Телефон</label>
+                                {% if form.phone.errors %}<div class="invalid-feedback d-block">{{ form.phone.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <button type="submit" class="btn btn-burgundy btn-lg">
+                                    <i class="bi bi-check-circle me-2"></i>Сохранить изменения
+                                </button>
+                                <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-lg">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Выйти
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const avatarInput = document.getElementById('avatarInput');
+const avatarImg = document.getElementById('avatarImg');
+if (avatarInput && avatarImg) {
+    avatarInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                avatarImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,827 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% block title %}ScattDelly Store - Django Jazzmin Admin{% endblock %}
+
+{% block extra_styles %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    :root {
+        --burgundy: #800020;
+        --burgundy-dark: #660019;
+        --burgundy-light: #a0002a;
+        --sidebar-width: 280px;
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+        --burgundy-gradient: linear-gradient(135deg, var(--burgundy) 0%, var(--burgundy-dark) 100%);
+    }
+    * { box-sizing: border-box; }
+    body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; margin: 0; padding: 0; }
+    .admin-wrapper { display: flex; min-height: 100vh; }
+    .admin-sidebar { width: var(--sidebar-width); background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; box-shadow: 4px 0 20px rgba(0,0,0,0.1); }
+    .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); background: var(--burgundy-gradient); }
+    .sidebar-logo { font-size: 24px; font-weight: bold; color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+    .sidebar-logo i { margin-right: 10px; font-size: 28px; }
+    .sidebar-menu { padding: 20px 0; }
+    .menu-section { margin-bottom: 30px; }
+    .menu-section-title { padding: 0 20px 10px; font-size: 12px; text-transform: uppercase; color: rgba(255,255,255,0.6); font-weight: 600; letter-spacing: 1px; }
+    .menu-item { display: block; padding: 12px 20px; color: rgba(255,255,255,0.8); text-decoration: none; transition: all 0.3s ease; border-left: 3px solid transparent; }
+    .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.1); color: white; border-left-color: var(--burgundy); transform: translateX(5px); }
+    .menu-item i { width: 20px; margin-right: 15px; text-align: center; }
+    .admin-content { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; }
+    .content-header { background: white; padding: 20px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+    .header-top { display: flex; justify-content: between; align-items: center; margin-bottom: 15px; }
+    .breadcrumb-jazzmin { background: none; padding: 0; margin: 0; font-size: 14px; }
+    .breadcrumb-jazzmin .breadcrumb-item { color: #6c757d; }
+    .breadcrumb-jazzmin .breadcrumb-item.active { color: var(--burgundy); font-weight: 600; }
+    .header-actions { display: flex; gap: 15px; align-items: center; }
+    .notification-icon { position: relative; padding: 10px; background: #f8f9fa; border-radius: 50%; color: #6c757d; text-decoration: none; transition: all 0.3s ease; }
+    .notification-icon:hover { background: var(--burgundy); color: white; transform: scale(1.1); }
+    .notification-badge { position: absolute; top: 0; right: 0; background: #dc3545; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+    .user-profile { display: flex; align-items: center; gap: 10px; padding: 8px 15px; background: #f8f9fa; border-radius: 25px; text-decoration: none; color: #495057; transition: all 0.3s ease; }
+    .user-profile:hover { background: var(--burgundy); color: white; }
+    .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+    .main-content { padding: 30px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .stats-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; overflow: hidden; transition: transform 0.3s ease; }
+    .stats-card:hover { transform: translateY(-5px); }
+    .stats-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+    .stats-card.primary::before { background: var(--primary-gradient); }
+    .stats-card.success::before { background: var(--success-gradient); }
+    .stats-card.warning::before { background: var(--warning-gradient); }
+    .stats-card.danger::before { background: var(--danger-gradient); }
+    .stats-card.burgundy::before { background: var(--burgundy-gradient); }
+    .stats-header { display: flex; align-items: center; margin-bottom: 15px; }
+    .stats-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+    .stats-icon.primary { background: var(--primary-gradient); }
+    .stats-icon.success { background: var(--success-gradient); }
+    .stats-icon.warning { background: var(--warning-gradient); }
+    .stats-icon.danger { background: var(--danger-gradient); }
+    .stats-icon.burgundy { background: var(--burgundy-gradient); }
+    .stats-number { font-size: 2.5rem; font-weight: 700; color: #2c3e50; margin-bottom: 5px; }
+    .stats-label { color: #6c757d; font-size: 14px; font-weight: 500; }
+    .stats-change { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; margin-top: 10px; }
+    .stats-change.positive { color: #28a745; }
+    .stats-change.negative { color: #dc3545; }
+    .chart-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px; }
+    .chart-header { display: flex; justify-content: between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+    .chart-title { font-size: 18px; font-weight: 600; color: #2c3e50; }
+    .chart-controls { display: flex; gap: 10px; }
+    .btn-jazzmin { padding: 8px 16px; border-radius: 8px; border: none; font-weight: 500; transition: all 0.3s ease; cursor: pointer; }
+    .btn-primary-jazzmin { background: var(--primary-gradient); color: white; }
+    .btn-burgundy-jazzmin { background: var(--burgundy-gradient); color: white; }
+    .btn-outline-jazzmin { background: transparent; border: 1px solid #dee2e6; color: #6c757d; }
+    .btn-jazzmin:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+    .gantt-container { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px; }
+    .gantt-chart { overflow-x: auto; margin-top: 20px; }
+    .gantt-timeline { display: flex; min-width: 800px; height: 250px; position: relative; }
+    .gantt-sidebar { width: 200px; background: #f8f9fa; border-right: 1px solid #dee2e6; }
+    .gantt-content { flex: 1; position: relative; background: white; }
+    .gantt-header { height: 60px; background: #f8f9fa; border-bottom: 1px solid #dee2e6; display: flex; align-items: center; padding: 0 20px; }
+    .gantt-month { flex: 1; text-align: center; font-weight: 600; color: #495057; border-right: 1px solid #dee2e6; }
+    .gantt-row { height: 50px; display: flex; align-items: center; border-bottom: 1px solid #f1f1f1; }
+    .gantt-task-name { width: 200px; padding: 0 15px; font-weight: 500; color: #495057; background: #f8f9fa; border-right: 1px solid #dee2e6; display: flex; align-items: center; height: 100%; }
+    .gantt-task-bar { position: relative; height: 30px; margin: 10px 0; border-radius: 15px; display: flex; align-items: center; padding: 0 15px; color: white; font-size: 12px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+    .gantt-task-bar.completed { background: var(--success-gradient); }
+    .gantt-task-bar.in-progress { background: var(--warning-gradient); }
+    .gantt-task-bar.planned { background: var(--primary-gradient); }
+    .gantt-task-bar.overdue { background: var(--danger-gradient); }
+    .table-jazzmin { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .table-jazzmin .table { margin: 0; }
+    .table-jazzmin .table thead th { background: var(--burgundy-gradient); color: white; border: none; font-weight: 600; padding: 15px; }
+    .table-jazzmin .table tbody td { padding: 15px; border-color: #f1f1f1; vertical-align: middle; }
+    .table-jazzmin .table tbody tr:hover { background: #f8f9fa; }
+    .modal-jazzmin .modal-content { border-radius: 15px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .modal-jazzmin .modal-header { background: var(--burgundy-gradient); color: white; border-radius: 15px 15px 0 0; padding: 20px 25px; }
+    .modal-jazzmin .modal-body { padding: 25px; }
+    .modal-jazzmin .modal-footer { padding: 20px 25px; border-top: 1px solid #f1f1f1; }
+    .form-control-jazzmin { border-radius: 8px; border: 1px solid #dee2e6; padding: 12px 15px; transition: all 0.3s ease; }
+    .form-control-jazzmin:focus { border-color: var(--burgundy); box-shadow: 0 0 0 0.2rem rgba(128,0,32,0.25); }
+    @media (max-width: 768px) { .admin-sidebar { transform: translateX(-100%); transition: transform 0.3s ease; } .admin-sidebar.show { transform: translateX(0); } .admin-content { margin-left: 0; } .stats-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-wrapper">
+    <!-- Sidebar -->
+    <div class="admin-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <i class="bi bi-phone"></i>
+                ScattDelly Store
+            </a>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-section-title">Главное</div>
+                <a href="/" class="menu-item" id="mainPageLink">
+                    <i class="bi bi-house"></i>
+                    <span>Главная</span>
+                </a>
+                <a href="#" class="menu-item active" onclick="showDashboard()">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Панель управления</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Магазин</div>
+                <a href="#" class="menu-item" onclick="showProducts()">
+                    <i class="bi bi-box-seam"></i>
+                    <span>Товары</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showOrders()">
+                    <i class="bi bi-receipt"></i>
+                    <span>Заказы</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showCustomers()">
+                    <i class="bi bi-people"></i>
+                    <span>Клиенты</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showCategories()">
+                    <i class="bi bi-tags"></i>
+                    <span>Категории</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Контент</div>
+                <a href="#" class="menu-item" onclick="showReviews()">
+                    <i class="bi bi-star"></i>
+                    <span>Отзывы</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showPromotions()">
+                    <i class="bi bi-gift"></i>
+                    <span>Акции</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Аналитика</div>
+                <a href="#" class="menu-item" onclick="showAnalytics()">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Статистика</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showReports()">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Отчеты</span>
+                </a>
+            </div>
+            <div class="menu-section">
+                <div class="menu-section-title">Система</div>
+                <a href="#" class="menu-item" onclick="showSettings()">
+                    <i class="bi bi-gear"></i>
+                    <span>Настройки</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showUsers()">
+                    <i class="bi bi-person-gear"></i>
+                    <span>Пользователи</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <div class="admin-content">
+        <div class="content-header">
+            <div class="header-top">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb breadcrumb-jazzmin">
+                        <li class="breadcrumb-item">
+                            <i class="bi bi-house"></i> Главная
+                        </li>
+                        <li class="breadcrumb-item active">Панель управления</li>
+                    </ol>
+                </nav>
+                <div class="header-actions">
+                    <a href="#" class="notification-icon">
+                        <i class="bi bi-bell"></i>
+                        <span class="notification-badge">4</span>
+                    </a>
+                    <a href="#" class="notification-icon">
+                        <i class="bi bi-envelope"></i>
+                        <span class="notification-badge">8</span>
+                    </a>
+                    <a href="#" class="notification-icon">
+                        <i class="bi bi-cart"></i>
+                        <span class="notification-badge">12</span>
+                    </a>
+                    <div class="dropdown">
+                        <a href="#" class="user-profile dropdown-toggle" data-bs-toggle="dropdown">
+                            <img src="{% static 'main/images/placeholder.svg' %}" alt="Admin" class="user-avatar">
+                            <span>Админ</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Профиль</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Настройки</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right me-2"></i>Выйти</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <h1 class="h3 mb-0 fw-bold text-dark">Добро пожаловать в ScattDelly Store Admin</h1>
+        </div>
+        <div class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboardSection">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stats-card primary">
+                        <div class="stats-header">
+                            <div>
+                                <div class="stats-number">247</div>
+                                <div class="stats-label">Всего товаров</div>
+                                <div class="stats-change positive">
+                                    <i class="bi bi-arrow-up"></i>
+                                    <span>+12% за месяц</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-card success">
+                        <div class="stats-header">
+                            <div>
+                                <div class="stats-number">89</div>
+                                <div class="stats-label">Новые заказы</div>
+                                <div class="stats-change positive">
+                                    <i class="bi bi-arrow-up"></i>
+                                    <span>+8% за неделю</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-card warning">
+                        <div class="stats-header">
+                            <div>
+                                <div class="stats-number">1,234</div>
+                                <div class="stats-label">Активные клиенты</div>
+                                <div class="stats-change positive">
+                                    <i class="bi bi-arrow-up"></i>
+                                    <span>+15% за месяц</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-card burgundy">
+                        <div class="stats-header">
+                            <div>
+                                <div class="stats-number">₽2.4M</div>
+                                <div class="stats-label">Выручка за месяц</div>
+                                <div class="stats-change positive">
+                                    <i class="bi bi-arrow-up"></i>
+                                    <span>+22% за месяц</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Gantt Chart -->
+                <div class="gantt-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">План продаж - Диаграмма Ганта</h3>
+                        <div class="chart-controls">
+                            <button class="btn-jazzmin btn-outline-jazzmin">Месяц</button>
+                            <button class="btn-jazzmin btn-burgundy-jazzmin">Квартал</button>
+                            <button class="btn-jazzmin btn-outline-jazzmin">Год</button>
+                        </div>
+                    </div>
+                    <div class="gantt-chart">
+                        <div class="gantt-timeline">
+                            <div class="gantt-sidebar">
+                                <div class="gantt-header">
+                                    <strong>Категории товаров</strong>
+                                </div>
+                                <div class="gantt-task-name">Смартфоны iPhone</div>
+                                <div class="gantt-task-name">Смартфоны Samsung</div>
+                                <div class="gantt-task-name">Смартфоны Xiaomi</div>
+                            </div>
+                            <div class="gantt-content">
+                                <div class="gantt-header">
+                                    <div class="gantt-month">Янв</div>
+                                    <div class="gantt-month">Фев</div>
+                                    <div class="gantt-month">Мар</div>
+                                    <div class="gantt-month">Апр</div>
+                                    <div class="gantt-month">Май</div>
+                                    <div class="gantt-month">Июн</div>
+                                </div>
+                                <div class="gantt-row">
+                                    <div class="gantt-task-bar completed" style="width: 80%; margin-left: 10%;">
+                                        План выполнен 120%
+                                    </div>
+                                </div>
+                                <div class="gantt-row">
+                                    <div class="gantt-task-bar in-progress" style="width: 60%; margin-left: 5%;">
+                                        В процессе 85%
+                                    </div>
+                                </div>
+                                <div class="gantt-row">
+                                    <div class="gantt-task-bar completed" style="width: 70%; margin-left: 15%;">
+                                        Выполнено 110%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Только диаграмма Ганта, без дополнительных графиков -->
+            </div>
+            <!-- Products Section (пример, можно расширить) -->
+            <div id="productsSection" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold">Управление товарами</h2>
+                    <button class="btn-jazzmin btn-burgundy-jazzmin" onclick="showAddProductModal()">
+                        <i class="bi bi-plus-circle me-2"></i>Добавить товар
+                    </button>
+                </div>
+                <div class="table-jazzmin">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Изображение</th>
+                                <th>Название</th>
+                                <th>Категория</th>
+                                <th>Цена</th>
+                                <th>Остаток</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#001</td>
+                                <td><img src="{% static 'main/images/placeholder.svg' %}" alt="iPhone" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;"></td>
+                                <td>iPhone 16 Pro Max 256GB</td>
+                                <td>Смартфоны</td>
+                                <td>134 990 ₽</td>
+                                <td>15</td>
+                                <td><span class="badge bg-success">В наличии</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editProduct(1)"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger me-1" onclick="deleteProduct(1)"><i class="bi bi-trash"></i></button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="viewProductImages(1)"><i class="bi bi-images"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#002</td>
+                                <td><img src="{% static 'main/images/placeholder.svg' %}" alt="Samsung" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;"></td>
+                                <td>Samsung Galaxy S24 Ultra</td>
+                                <td>Смартфоны</td>
+                                <td>95 990 ₽</td>
+                                <td>8</td>
+                                <td><span class="badge bg-warning">Мало</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editProduct(2)"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger me-1" onclick="deleteProduct(2)"><i class="bi bi-trash"></i></button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="viewProductImages(2)"><i class="bi bi-images"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Users Section -->
+            <div id="usersSection" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold">Пользователи</h2>
+                </div>
+                <div class="table-jazzmin">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Имя пользователя</th>
+                                <th>Email</th>
+                                <th>Дата регистрации</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Пользователи будут подгружаться через JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Reviews Section -->
+            <div id="reviewsSection" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold">Отзывы на товары</h2>
+                </div>
+                <div class="table-jazzmin">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Товар</th>
+                                <th>Имя</th>
+                                <th>Email</th>
+                                <th>Оценка</th>
+                                <th>Комментарий</th>
+                                <th>Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviewsTableBody">
+                            <!-- Отзывы будут подгружаться через JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add Product Modal -->
+<div class="modal fade modal-jazzmin" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить новый товар</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProductForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Название товара</label>
+                            <input type="text" class="form-control form-control-jazzmin" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Категория</label>
+                            <select class="form-control form-control-jazzmin" name="category" required>
+                                <option value="">Выберите категорию</option>
+                                <option>Смартфоны</option>
+                                <option>Аксессуары</option>
+                                <option>Чехлы</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Цена (₽)</label>
+                            <input type="number" class="form-control form-control-jazzmin" name="price" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Количество</label>
+                            <input type="number" class="form-control form-control-jazzmin" name="quantity" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Статус</label>
+                            <select class="form-control form-control-jazzmin" name="status" required>
+                                <option>В наличии</option>
+                                <option>Нет в наличии</option>
+                                <option>Предзаказ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control form-control-jazzmin" name="description" rows="4"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Характеристики (JSON)</label>
+                        <textarea class="form-control form-control-jazzmin" name="specifications" rows="2" placeholder='[{"name": "Цвет", "value": "Серый"}]'></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Изображения товара</label>
+                        <input type="file" class="form-control form-control-jazzmin" name="images" multiple accept="image/*">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-jazzmin btn-outline-jazzmin" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn-jazzmin btn-burgundy-jazzmin" onclick="addProduct()">Добавить товар</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- View Images Modal -->
+<div class="modal fade" id="viewImagesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Фотографии товара</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="imagesGallery">
+                <!-- Галерея фото товара -->
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Edit Product Modal -->
+<div class="modal fade modal-jazzmin" id="editProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать товар</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProductForm">
+                    <!-- Те же поля, что и в addProductForm, но с заполнением значений -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-jazzmin btn-outline-jazzmin" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn-jazzmin btn-burgundy-jazzmin" onclick="saveProductEdit()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// --- CRUD Product ---
+const apiUrl = '/api/products/';
+
+// Загрузка и отрисовка товаров
+function loadProducts() {
+    fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => renderProductsTable(data))
+        .catch(() => alert('Ошибка загрузки товаров'));
+}
+
+function renderProductsTable(products) {
+    const tbody = document.querySelector('#productsSection .table tbody');
+    tbody.innerHTML = '';
+    products.forEach(product => {
+        let imgSrc = '/static/main/images/placeholder.svg';
+        if (product.images && product.images.length && product.images[0]) {
+            imgSrc = product.images[0];
+        } else if (product.main_image) {
+            imgSrc = product.main_image;
+        }
+        tbody.innerHTML += `
+        <tr>
+            <td>#${product.id}</td>
+            <td><img src="${imgSrc}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;"></td>
+            <td>${product.name}</td>
+            <td>${product.specifications?.find(s=>s.name=="Категория")?.value || ''}</td>
+            <td>${product.price} ₽</td>
+            <td>${product.quantity || '-'}</td>
+            <td><span class="badge ${product.is_sale ? 'bg-warning' : 'bg-success'}">${product.is_sale ? 'Распродажа' : 'В наличии'}</span></td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="editProduct(${product.id})"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger me-1" onclick="deleteProduct(${product.id})"><i class="bi bi-trash"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="viewProductImages(${product.id})"><i class="bi bi-images"></i></button>
+            </td>
+        </tr>`;
+    });
+}
+
+// Добавление товара
+function addProduct() {
+    const form = document.getElementById('addProductForm');
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    if (data.specifications) {
+        try { data.specifications = JSON.parse(data.specifications); } catch { data.specifications = []; }
+    }
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.ok ? res.json() : Promise.reject(res))
+    .then(() => {
+        bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+        form.reset();
+        loadProducts();
+    })
+    .catch(async (res) => {
+        let msg = 'Ошибка добавления товара';
+        if (res && res.text) {
+            const text = await res.text();
+            msg += '\n' + text;
+        }
+        alert(msg);
+    });
+}
+
+// Редактирование товара
+let currentEditId = null;
+function editProduct(id) {
+    fetch(apiUrl + id + '/')
+        .then(res => res.json())
+        .then(product => {
+            currentEditId = id;
+            fetch('/api/categories/')
+                .then(res => res.json())
+                .then(categories => {
+                    const form = document.getElementById('editProductForm');
+                    let categoryOptions = '<option value="">Выберите категорию</option>';
+                    categories.forEach(cat => {
+                        categoryOptions += `<option value="${cat.id}"${product.category == cat.id ? ' selected' : ''}>${cat.name}</option>`;
+                    });
+                    form.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Название товара</label>
+                                <input type="text" class="form-control form-control-jazzmin" name="name" value="${product.name}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Категория</label>
+                                <select class="form-control form-control-jazzmin" name="category" required>${categoryOptions}</select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Цена (₽)</label>
+                                <input type="number" class="form-control form-control-jazzmin" name="price" value="${product.price}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Количество</label>
+                                <input type="number" class="form-control form-control-jazzmin" name="quantity" value="${product.quantity || ''}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Статус</label>
+                                <select class="form-control form-control-jazzmin" name="status" required>
+                                    <option${product.status === 'В наличии' ? ' selected' : ''}>В наличии</option>
+                                    <option${product.status === 'Нет в наличии' ? ' selected' : ''}>Нет в наличии</option>
+                                    <option${product.status === 'Предзаказ' ? ' selected' : ''}>Предзаказ</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Описание</label>
+                            <textarea class="form-control form-control-jazzmin" name="description" rows="4">${product.description || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Характеристики (JSON)</label>
+                            <textarea class="form-control form-control-jazzmin" name="specifications" rows="2">${JSON.stringify(product.specifications || [])}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Изображения товара</label>
+                            <input type="file" class="form-control form-control-jazzmin" name="images" multiple accept="image/*">
+                        </div>
+                    `;
+                    new bootstrap.Modal(document.getElementById('editProductModal')).show();
+                });
+        });
+}
+function saveProductEdit() {
+    const form = document.getElementById('editProductForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    if (data.specifications) {
+        try { data.specifications = JSON.parse(data.specifications); } catch { data.specifications = []; }
+    }
+    fetch(apiUrl + currentEditId + '/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.ok ? res.json() : Promise.reject(res))
+    .then(() => {
+        bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide();
+        loadProducts();
+    })
+    .catch(() => alert('Ошибка сохранения изменений'));
+}
+
+// Удаление товара
+function deleteProduct(id) {
+    if (!confirm('Вы уверены, что хотите удалить этот товар?')) return;
+    fetch(apiUrl + id + '/', {
+        method: 'DELETE',
+        headers: { 'X-CSRFToken': getCSRF() }
+    })
+    .then(res => res.ok ? loadProducts() : Promise.reject(res))
+    .catch(() => alert('Ошибка удаления товара'));
+}
+
+// Просмотр фото товара
+function viewProductImages(id) {
+    fetch(apiUrl + id + '/')
+        .then(res => res.json())
+        .then(product => {
+            const gallery = document.getElementById('imagesGallery');
+            if (product.images && product.images.length) {
+                gallery.innerHTML = product.images.map(img => `<img src="${img}" class="img-fluid m-2" style="max-width:200px;">`).join('');
+            } else {
+                gallery.innerHTML = '<div class="text-muted">Нет фото</div>';
+            }
+            new bootstrap.Modal(document.getElementById('viewImagesModal')).show();
+        });
+}
+
+// CSRF helper
+function getCSRF() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let c of cookies) {
+        c = c.trim();
+        if (c.startsWith(name + '=')) return c.substring(name.length + 1);
+    }
+    return '';
+}
+
+// Автоматическая загрузка товаров при открытии секции
+function showProducts() {
+    showSection('productsSection');
+    loadProducts();
+    event.target.classList.add('active');
+}
+
+// Переопределяю addProduct и saveProductEdit в глобальной области
+window.addProduct = addProduct;
+window.editProduct = editProduct;
+window.saveProductEdit = saveProductEdit;
+window.deleteProduct = deleteProduct;
+window.viewProductImages = viewProductImages;
+window.showProducts = showProducts;
+
+function showSection(sectionId) {
+    document.querySelectorAll('[id$="Section"]').forEach(section => {
+        section.style.display = 'none';
+    });
+    const el = document.getElementById(sectionId);
+    if (el) el.style.display = 'block';
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+    });
+}
+function showDashboard() { showSection('dashboardSection'); event.target.classList.add('active'); }
+function showOrders() { showSection('ordersSection'); event.target.classList.add('active'); }
+function showCustomers() { showSection('customersSection'); event.target.classList.add('active'); }
+function showCategories() { showSection('categoriesSection'); event.target.classList.add('active'); }
+function showReviews() { showSection('reviewsSection'); loadReviews(); event.target.classList.add('active'); }
+function showPromotions() { showSection('promotionsSection'); event.target.classList.add('active'); }
+function showAnalytics() { showSection('analyticsSection'); event.target.classList.add('active'); }
+function showReports() { showSection('reportsSection'); event.target.classList.add('active'); }
+function showSettings() { showSection('settingsSection'); event.target.classList.add('active'); }
+function showUsers() { showSection('usersSection'); loadUsers(); event.target.classList.add('active'); }
+
+function fillCategorySelect() {
+    fetch('/api/categories/')
+        .then(res => res.json())
+        .then(categories => {
+            console.log('Категории:', categories);
+            const select = document.querySelector('#addProductForm select[name="category"]');
+            if (!select) return;
+            select.innerHTML = '<option value="">Выберите категорию</option>';
+            categories.forEach(cat => {
+                select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+            });
+        });
+}
+function showAddProductModal() {
+    fillCategorySelect();
+    new bootstrap.Modal(document.getElementById('addProductModal')).show();
+}
+
+// --- CRUD Users ---
+const usersApiUrl = '/api/users/';
+function loadUsers() {
+    fetch(usersApiUrl)
+        .then(res => res.json())
+        .then(data => renderUsersTable(data))
+        .catch(() => alert('Ошибка загрузки пользователей'));
+}
+function renderUsersTable(users) {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '';
+    users.forEach(user => {
+        tbody.innerHTML += `
+        <tr>
+            <td>#${user.id}</td>
+            <td>${user.username}</td>
+            <td>${user.email}</td>
+            <td>${user.date_joined ? user.date_joined.split('T')[0] : ''}</td>
+            <td><span class="badge ${user.is_active ? 'bg-success' : 'bg-secondary'}">${user.is_active ? 'Активен' : 'Неактивен'}</span></td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="viewUser(${user.id})"><i class="bi bi-person"></i></button>
+            </td>
+        </tr>`;
+    });
+}
+
+// --- CRUD Reviews ---
+const reviewsApiUrl = '/api/reviews/';
+function loadReviews() {
+    fetch(reviewsApiUrl)
+        .then(res => res.json())
+        .then(data => renderReviewsTable(data))
+        .catch(() => alert('Ошибка загрузки отзывов'));
+}
+function renderReviewsTable(reviews) {
+    const tbody = document.getElementById('reviewsTableBody');
+    tbody.innerHTML = '';
+    reviews.forEach(review => {
+        tbody.innerHTML += `
+        <tr>
+            <td>#${review.id}</td>
+            <td>${review.product}</td>
+            <td>${review.name}</td>
+            <td>${review.email}</td>
+            <td>${review.rating}</td>
+            <td>${review.comment}</td>
+            <td>${review.created_at ? review.created_at.split('T')[0] : ''}</td>
+        </tr>`;
+    });
+}
+</script>
+{% endblock %} 

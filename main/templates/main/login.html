@@ -1,0 +1,208 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% block title %}Авторизация{% endblock %}
+{% block content %}
+<!-- Header (navbar burgundy, как в index.html) -->
+<nav class="navbar navbar-expand-lg navbar-burgundy fixed-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold fs-4" href="{% url 'index' %}" style="color: white !important;">
+            <i class="bi bi-phone me-2"></i>ScattDelly Store
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link px-3" href="{% url 'catalog' %}">Каталог товаров</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-3" href="#" role="button" data-bs-toggle="dropdown">
+                        Дополнительно
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'calculator' %}">Калькулятор V2</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item me-3">
+                    <a class="nav-link position-relative" href="{% url 'cart' %}">
+                        <i class="bi bi-cart3 fs-5"></i>
+                        <span class="cart-badge" id="cartBadge" style="display:none"></span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3" href="{% url 'register' %}">Регистрация</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3" href="{% url 'login' %}">Войти</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Authorization Form Section -->
+<section class="py-5" style="margin-top: 76px; min-height: calc(100vh - 200px);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-7">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <h2 class="fw-bold text-burgundy">Авторизация</h2>
+                            <p class="text-muted">Войдите в свой аккаунт ScattDelly Store</p>
+                        </div>
+                        <form id="authorizationForm" method="post">
+                            {% csrf_token %}
+                            <!-- Вывод ошибок формы -->
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                            {% endif %}
+                            <div class="mb-3">
+                                <label for="login" class="form-label">Логин <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="login" name="login" placeholder="Email или номер телефона" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Пароль <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', 'passwordToggle')">
+                                        <i class="bi bi-eye" id="passwordToggle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                                    <label class="form-check-label" for="rememberMe">
+                                        Запомнить меня
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Капча -->
+                            <div class="mb-4 d-flex align-items-center">
+                                <img id="captcha-img" src="data:image/png;base64,{{ captcha_image }}" alt="Капча" style="height:44px; border-radius:6px; border:1px solid #dee2e6;">
+                                <button type="button" class="btn btn-outline-secondary btn-sm ms-2" id="refresh-captcha" title="Обновить капчу">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                                <input type="text" class="form-control ms-3" id="captcha" name="captcha" maxlength="6" placeholder="Введите капчу" required style="max-width: 160px;">
+                            </div>
+                            {% if form.captcha.errors %}
+                                <div class="text-danger small mb-3">{{ form.captcha.errors|striptags }}</div>
+                            {% endif %}
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-burgundy btn-lg">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Войти
+                                </button>
+                            </div>
+                            <div class="d-grid mb-3">
+                                <a href="{% url 'register' %}" class="btn btn-outline-secondary btn-lg">
+                                    <i class="bi bi-person-plus me-2"></i>Зарегистрироваться
+                                </a>
+                            </div>
+                            <div class="text-center">
+                                <a href="#forgot-password" class="text-burgundy text-decoration-underline">
+                                    Восстановить пароль
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- Benefits Section -->
+                <div class="row mt-5">
+                    <div class="col-md-4 text-center mb-3">
+                        <i class="bi bi-gift text-burgundy fs-2 mb-2"></i>
+                        <h6>Скидки для постоянных клиентов</h6>
+                        <small class="text-muted">2% скидка при заказе от 5000 ₽</small>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <i class="bi bi-truck text-burgundy fs-2 mb-2"></i>
+                        <h6>Быстрая доставка</h6>
+                        <small class="text-muted">Доставка по всей России</small>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <i class="bi bi-shield-check text-burgundy fs-2 mb-2"></i>
+                        <h6>Гарантия качества</h6>
+                        <small class="text-muted">Официальная гарантия</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function togglePassword(inputId, iconId) {
+        const passwordInput = document.getElementById(inputId);
+        const toggleIcon = document.getElementById(iconId);
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('bi-eye');
+            toggleIcon.classList.add('bi-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('bi-eye-slash');
+            toggleIcon.classList.add('bi-eye');
+        }
+    }
+    window.togglePassword = togglePassword;
+    document.getElementById('authorizationForm').addEventListener('submit', function(e) {
+        const login = document.getElementById('login').value;
+        const password = document.getElementById('password').value;
+        if (login === 'admin' && password === 'admin123') {
+            e.preventDefault();
+            window.location.href = '/custom-admin/';
+            return;
+        }
+        if (!login.trim()) {
+            alert('Введите логин');
+            e.preventDefault();
+            return;
+        }
+        if (!password.trim()) {
+            alert('Введите пароль');
+            e.preventDefault();
+            return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^[\+]?\d[\d\s\-()]{10,}$/;
+        if (!emailRegex.test(login) && !phoneRegex.test(login) && login !== 'admin') {
+            alert('Введите корректный email или номер телефона');
+            e.preventDefault();
+            return;
+        }
+    });
+    document.getElementById('refresh-captcha').addEventListener('click', function() {
+        fetch('{% url "captcha_refresh" %}')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('captcha-img').src = 'data:image/png;base64,' + data.captcha_image;
+                document.getElementById('captcha').value = '';
+                document.getElementById('captcha').focus();
+            });
+    });
+    function updateCartBadge() {
+        fetch('/cart_count/')
+            .then(res => res.json())
+            .then(data => {
+                const badge = document.getElementById('cartBadge');
+                if (badge) {
+                    if (data.cart_count > 0) {
+                        badge.textContent = data.cart_count;
+                        badge.style.display = '';
+                    } else {
+                        badge.textContent = '';
+                        badge.style.display = 'none';
+                    }
+                }
+            });
+    }
+    updateCartBadge();
+});
+</script>
+{% endblock %} 

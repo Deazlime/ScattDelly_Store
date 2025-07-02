@@ -1,0 +1,372 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% block title %}Корзина - ScattDelly Store{% endblock %}
+{% block extra_head %}
+<style>
+    :root {
+        --burgundy: #800020;
+        --burgundy-dark: #660019;
+        --burgundy-light: #a0002a;
+    }
+    .navbar-burgundy { background-color: var(--burgundy) !important; }
+    .navbar-burgundy .navbar-brand,
+    .navbar-burgundy .nav-link { color: white !important; }
+    .navbar-burgundy .nav-link:hover { color: #f8f9fa !important; background-color: var(--burgundy-dark); border-radius: 4px; }
+    .cart-badge { position: absolute; top: -8px; right: -8px; background-color: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+    .btn-burgundy { background-color: var(--burgundy); border-color: var(--burgundy); color: white; }
+    .btn-burgundy:hover { background-color: var(--burgundy-dark); border-color: var(--burgundy-dark); color: white; }
+    .text-burgundy { color: var(--burgundy) !important; }
+    .cart-item { border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 15px; background: white; }
+    .cart-item img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; }
+    .quantity-controls { display: flex; align-items: center; gap: 10px; }
+    .quantity-btn { width: 35px; height: 35px; border: 1px solid #dee2e6; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+    .quantity-btn:hover { background-color: var(--burgundy); color: white; border-color: var(--burgundy); }
+    .quantity-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .quantity-input { width: 60px; text-align: center; border: 1px solid #dee2e6; border-radius: 4px; padding: 5px; }
+    .price-original { text-decoration: line-through; color: #6c757d; font-size: 0.9em; }
+    .price-current { color: var(--burgundy); font-weight: bold; font-size: 1.1em; }
+    .order-summary { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); position: sticky; top: 100px; }
+    body { background-color: #f8f9fa; }
+    .main-content { margin-top: 76px; min-height: calc(100vh - 200px); }
+</style>
+{% endblock %}
+{% block content %}
+<!-- Header -->
+<nav class="navbar navbar-expand-lg navbar-burgundy fixed-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold fs-4" href="{% url 'index' %}" style="color: white !important;">
+            <i class="bi bi-phone me-2"></i>ScattDelly Store
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link px-3" href="{% url 'catalog' %}">Каталог товаров</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-3" href="#" role="button" data-bs-toggle="dropdown">
+                        Дополнительно
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'calculator' %}">Калькулятор V2</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item me-3">
+                    <a class="nav-link position-relative" href="{% url 'cart' %}">
+                        <i class="bi bi-cart3 fs-5"></i>
+                        <span class="cart-badge" id="cartBadge" style="display:none"></span>
+                    </a>
+                </li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item d-flex align-items-center">
+                        <a class="nav-link px-3" href="{% url 'profile' %}">
+                            <i class="bi bi-person-circle fs-5 me-1"></i>{{ user.username }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{% url 'logout' %}">Выйти</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{% url 'register' %}">Регистрация</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{% url 'login' %}">Войти</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+<!-- Main Content -->
+<div class="main-content">
+    <div class="container py-4">
+        <div class="row">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold">Корзина <span id="cartItemCount">{{ cart_items|length }} {{ cart_items|length|pluralize:'товар,товара,товаров' }}</span></h2>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        <label class="form-check-label" for="selectAll">
+                            Выбрать все
+                        </label>
+                    </div>
+                </div>
+                {% if cart_items %}
+                    {% for item in cart_items %}
+                    <div class="cart-item" id="item-{{ item.product.id }}">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <input class="form-check-input item-checkbox" type="checkbox" checked onchange="updateTotal()">
+                            </div>
+                            <div class="col-auto">
+                                <img src="{{ item.product.main_image.url }}" alt="{{ item.product.name }}">
+                            </div>
+                            <div class="col">
+                                <h5 class="mb-1">{{ item.product.name }}</h5>
+                                <p class="text-muted mb-1">{{ item.product.short_description }}</p>
+                                <small class="text-success">В наличии</small>
+                            </div>
+                            <div class="col-auto">
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn" onclick="changeQuantity('{{ item.product.id }}', -1)"><i class="bi bi-dash"></i></button>
+                                    <input type="number" class="quantity-input" id="qty-{{ item.product.id }}" value="{{ item.quantity }}" min="1" readonly>
+                                    <button class="quantity-btn" onclick="changeQuantity('{{ item.product.id }}', 1)"><i class="bi bi-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-auto text-end">
+                                <div class="price-current" id="price-{{ item.product.id }}" data-price="{{ item.product.price }}">{{ item.product.price|floatformat:0 }} ₽</div>
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-outline-danger btn-sm" onclick="removeItem('{{ item.product.id }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-5">Ваша корзина пуста</div>
+                {% endif %}
+            </div>
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="order-summary">
+                    <h4 class="mb-3">Выбрать адрес доставки</h4>
+                    <div class="mb-3">
+                        <label class="form-label">Адрес доставки</label>
+                        <select class="form-select">
+                            <option selected>Выберите адрес доставки</option>
+                            <option value="1">Москва, ул. Тверская, д. 1</option>
+                            <option value="2">Москва, ул. Арбат, д. 10</option>
+                            <option value="3">Добавить новый адрес</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Способ доставки</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="delivery" id="courier" checked>
+                            <label class="form-check-label" for="courier">
+                                Курьерская доставка (бесплатно от 3000 ₽)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="delivery" id="pickup">
+                            <label class="form-check-label" for="pickup">
+                                Самовывоз из магазина (бесплатно)
+                            </label>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Товары, <span id="totalItems">2</span> шт.</span>
+                        <span id="subtotal">242 980 ₽</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>Скидка постоянного клиента (2%)</span>
+                        <span id="discount">-4 860 ₽</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Доставка</span>
+                        <span class="text-success">Бесплатно</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>Итого</h5>
+                        <h5 class="text-burgundy" id="total">238 120 ₽</h5>
+                    </div>
+                    <div class="d-grid">
+                        <button class="btn btn-burgundy btn-lg" onclick="placeOrder()">
+                            <i class="bi bi-bag-check me-2"></i>Заказать
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-shield-check me-1"></i>
+                            Безопасная оплата. Гарантия возврата в течение 14 дней.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Footer -->
+<footer class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <h5 class="fw-bold mb-3">ScattDelly Store</h5>
+                <p class="text-muted">Интернет-магазин смартфонов Apple, Android и аксессуаров. Качество, надежность, выгодные цены.</p>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 class="fw-bold mb-3">Информация</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#about">О нас</a></li>
+                    <li><a href="#contacts">Контакты</a></li>
+                    <li><a href="#help">Помощь</a></li>
+                    <li><a href="#reviews">Отзывы клиентов</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h6 class="fw-bold mb-3">Правовая информация</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#privacy">Политика конфиденциальности</a></li>
+                    <li><a href="#terms">Условия предоставления услуг</a></li>
+                    <li><a href="#cookies">Настройки куки</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <h6 class="fw-bold mb-3">Контакты</h6>
+                <p class="text-muted mb-1">
+                    <i class="bi bi-telephone me-2"></i>8 (800) 123-45-67
+                </p>
+                <p class="text-muted mb-1">
+                    <i class="bi bi-envelope me-2"></i>info@scattdelly.ru
+                </p>
+                <p class="text-muted">
+                    <i class="bi bi-clock me-2"></i>Пн-Вс: 9:00-21:00
+                </p>
+            </div>
+        </div>
+        <hr class="my-4">
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start">
+                <p class="mb-0 text-muted">© 2025 ScattDelly Store. Все права защищены.</p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <div class="d-flex justify-content-center justify-content-md-end gap-3">
+                    <a href="#" class="text-muted">
+                        <i class="bi bi-telegram fs-5"></i>
+                    </a>
+                    <a href="#" class="text-muted">
+                        <i class="bi bi-whatsapp fs-5"></i>
+                    </a>
+                    <a href="#" class="text-muted">
+                        <i class="bi bi-instagram fs-5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<script id="cart-items-data" type="application/json">
+    [
+    {% for item in cart_items %}
+        {
+            "id": {{ item.product.id }},
+            "name": "{{ item.product.name|escapejs }}",
+            "price": {{ item.product.price }},
+            "quantity": {{ item.quantity }}
+        }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+    ]
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const cartItemsArray = JSON.parse(document.getElementById('cart-items-data').textContent);
+    let cartItems = {};
+    cartItemsArray.forEach(item => {
+        cartItems[item.id] = {
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity
+        };
+    });
+
+    function changeQuantity(itemId, change) {
+        const qtyInput = document.getElementById(`qty-${itemId}`);
+        let newQty = parseInt(qtyInput.value) + change;
+        if (newQty < 1) newQty = 1;
+        if (newQty > 10) newQty = 10;
+        qtyInput.value = newQty;
+        cartItems[itemId].quantity = newQty;
+        updateItemPrice(itemId);
+        updateTotal();
+        updateCartBadge();
+    }
+    function updateItemPrice(itemId) {
+        const priceElement = document.getElementById(`price-${itemId}`);
+        const basePrice = cartItems[itemId].price;
+        const quantity = cartItems[itemId].quantity;
+        const totalPrice = basePrice * quantity;
+        priceElement.textContent = totalPrice.toLocaleString('ru-RU') + ' ₽';
+        priceElement.setAttribute('data-price', totalPrice);
+    }
+    function removeItem(itemId) {
+        if (confirm('Удалить товар из корзины?')) {
+            document.getElementById(`item-${itemId}`).remove();
+            delete cartItems[itemId];
+            updateTotal();
+            updateCartBadge();
+            updateItemCount();
+        }
+    }
+    function toggleSelectAll() {
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.item-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAll.checked;
+        });
+        updateTotal();
+    }
+    function updateTotal() {
+        let subtotal = 0;
+        let totalItems = 0;
+        document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
+            const cartItem = checkbox.closest('.cart-item');
+            const itemId = cartItem.id.split('-')[1];
+            const priceElement = cartItem.querySelector('.price-current');
+            const price = parseInt(priceElement.getAttribute('data-price'));
+            subtotal += price;
+            totalItems += cartItems[itemId] ? cartItems[itemId].quantity : 0;
+        });
+        const discount = Math.round(subtotal * 0.02); // 2% скидка
+        const total = subtotal - discount;
+        document.getElementById('subtotal').textContent = subtotal.toLocaleString('ru-RU') + ' ₽';
+        document.getElementById('discount').textContent = '-' + discount.toLocaleString('ru-RU') + ' ₽';
+        document.getElementById('total').textContent = total.toLocaleString('ru-RU') + ' ₽';
+        document.getElementById('totalItems').textContent = totalItems;
+    }
+    function updateCartBadge() {
+        const totalItems = Object.values(cartItems).reduce((sum, item) => sum + item.quantity, 0);
+        document.querySelectorAll('#cartBadge, .cart-badge').forEach(badge => {
+            if (totalItems > 0) {
+                badge.textContent = totalItems;
+                badge.style.display = '';
+            } else {
+                badge.textContent = '';
+                badge.style.display = 'none';
+            }
+        });
+    }
+    function updateItemCount() {
+        const itemCount = Object.keys(cartItems).length;
+        const itemText = itemCount === 1 ? 'товар' : itemCount < 5 ? 'товара' : 'товаров';
+        document.getElementById('cartItemCount').textContent = `${itemCount} ${itemText}`;
+    }
+    function placeOrder() {
+        const selectedItems = document.querySelectorAll('.item-checkbox:checked').length;
+        if (selectedItems === 0) {
+            alert('Выберите товары для заказа');
+            return;
+        }
+        const deliveryAddress = document.querySelector('select').value;
+        if (!deliveryAddress || deliveryAddress === '') {
+            alert('Выберите адрес доставки');
+            return;
+        }
+        alert('Заказ оформлен! Спасибо за покупку в ScattDelly Store!');
+    }
+    // Initialize
+    updateTotal();
+    updateCartBadge();
+</script>
+{% endblock %} 
